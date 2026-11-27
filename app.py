@@ -328,5 +328,11 @@ if search_button:
                     st.rerun()
                 else:
                     st.error(f"YouTube APIエラーが発生しました: {e}")
+                        except HttpError as e:
+                if e.resp.status == 403 and "quotaExceeded" in str(e):
+                    st.session_state.quota_exceeded = True
+                    st.rerun()
+                else:
+                    st.error(f"YouTube APIエラーが発生しました: {e}")
             except Exception as e:
                 st.error(f"エラーが発生しました: {e}")
