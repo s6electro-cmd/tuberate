@@ -60,7 +60,7 @@ st.markdown("""
         [data-testid="stSidebarCollapsedControl"]::after,
         [data-testid="stExpandSidebarButton"]::after,
         header[data-testid="stHeader"] button::after {
-            content: "🔍 検索条件";
+            content: "🔍 検索画面";
             font-size: 14px !important;
             font-weight: bold !important;
             color: white !important;
@@ -133,6 +133,7 @@ components.html("""
 
 st.title("📊 TubeRate 〜YouTube高評価率ランキング〜")
 st.markdown("再生回数だけでなく、視聴者の満足度（高評価率）が高い動画を期間指定で発掘できます。")
+st.info("💡 左上の「🔍 検索画面」から、あなたの好きなYouTubeのジャンルやお気に入りのチャンネル名を入れて試してみてください！")
 
 # 裏側（Secrets）に保存された運営者のAPIキーを取得
 owner_api_key = os.environ.get("YOUTUBE_API_KEY", "")
@@ -148,7 +149,7 @@ if "quota_exceeded" not in st.session_state:
 
 # サイドバー（検索条件の入力エリア）
 with st.sidebar:
-    st.header("🔍 検索条件")
+    st.header("🔍 検索画面")
 
     # 運営者キーがない場合、または無料枠の上限に達した場合のみ入力欄を表示
     user_api_key = ""
