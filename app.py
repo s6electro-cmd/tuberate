@@ -7,6 +7,29 @@ from googleapiclient.errors import HttpError
 
 # ページ設定
 st.set_page_config(page_title="TubeRate - YouTube高評価率ランキング", layout="wide")
+# 上段のFork・GitHubボタンと、右下のStreamlitバッジを非表示にする（左上のサイドバー開閉ボタンは残す）
+st.markdown("""
+    <style>
+        /* 上段右側のツールバー（Fork, GitHubアイコン, メニュー）を隠す */
+        [data-testid="stToolbar"] {
+            visibility: hidden;
+            height: 0%;
+            position: fixed;
+        }
+        /* 右下の「Hosted with Streamlit」やプロフィールバッジを隠す */
+        .viewerBadge_container__r5tak,
+        .styles_viewerBadge__CvC9N,
+        [data-testid="manage-app-button"],
+        footer {
+            display: none !important;
+        }
+        /* 上部の余白を少し詰めてスッキリさせる */
+        .block-container {
+            padding-top: 2rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("📊 TubeRate 〜YouTube高評価率ランキング〜")
 st.markdown("再生回数だけでなく、視聴者の満足度（高評価率）が高い動画を期間指定で発掘できます。")
 
