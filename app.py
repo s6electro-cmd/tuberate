@@ -13,6 +13,9 @@ st.set_page_config(page_title="TubeRate - YouTube高評価率ランキング", l
 # スマホ操作性アップ：検索ボタンを目立たせるCSS ＆ 左スワイプで閉じる機能
 import streamlit.components.v1 as components
 
+# スマホ操作性アップ：検索ボタンを目立たせるCSS ＆ 検索実行時に自動でメニューを閉じる機能
+import streamlit.components.v1 as components
+
 st.markdown("""
     <style>
         /* 上段右側のツールバーと右下のバッジを非表示 */
@@ -30,55 +33,78 @@ st.markdown("""
         header[data-testid="stHeader"] {
             background: transparent !important;
         }
-        /* ★ 1. 左上の「＞」ボタンを目立つ赤色の丸いボタンにして「検索条件」の文字を添える */
-        [data-testid="stSidebarCollapsedControl"] {
+        /* ★ 1. 左上の「＞」ボタンを確実に赤いピル型ボタンにして「検索条件」の文字を添える */
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="stExpandSidebarButton"],
+        header[data-testid="stHeader"] button {
             visibility: visible !important;
-            display: flex !important;
+            display: inline-flex !important;
             align-items: center !important;
             background-color: #ff4b4b !important;
             color: white !important;
-            border-radius: 20px !important;
-            padding: 4px 14px 4px 8px !important;
+            border-radius: 24px !important;
+            padding: 6px 16px 6px 10px !important;
             margin-top: 8px !important;
             margin-left: 8px !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.25) !important;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.25) !important;
+            border: none !important;
+            width: auto !important;
+            height: auto !important;
         }
-        [data-testid="stSidebarCollapsedControl"] svg {
+        [data-testid="stSidebarCollapsedControl"] svg,
+        [data-testid="stExpandSidebarButton"] svg,
+        header[data-testid="stHeader"] button svg {
             fill: white !important;
             color: white !important;
         }
-        [data-testid="stSidebarCollapsedControl"]::after {
+        [data-testid="stSidebarCollapsedControl"]::after,
+        [data-testid="stExpandSidebarButton"]::after,
+        header[data-testid="stHeader"] button::after {
             content: "🔍 検索条件";
-            font-size: 13px;
-            font-weight: bold;
-            margin-left: 4px;
-            white-space: nowrap;
+            font-size: 14px !important;
+            font-weight: bold !important;
+            color: white !important;
+            margin-left: 6px !important;
+            white-space: nowrap !important;
         }
         .block-container {
-            padding-top: 3rem;
+            padding-top: 3.5rem;
             padding-bottom: 5rem;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# ★ 2. スマホで左にスワイプした時に検索メニュー（サイドバー）を自動で閉じる機能
+# ★ 2. スワイプで閉じる機能 ＋ 「ランキングを作成する」ボタンを押したら自動でメニューを閉じる機能
 components.html("""
     <script>
     const doc = window.parent.document;
+
+    function closeSidebar() {
+        const closeBtn = doc.querySelector('[data-testid="stSidebarCollapseButton"] button, [data-testid="stSidebar"] button[kind="header"]');
+        if (closeBtn) {
+            closeBtn.click();
+        }
+    }
+
+    // 左スワイプで閉じる
     let touchStartX = 0;
     doc.addEventListener('touchstart', function(e) {
         touchStartX = e.changedTouches[0].screenX;
     }, {passive: true});
     doc.addEventListener('touchend', function(e) {
         const touchEndX = e.changedTouches[0].screenX;
-        // 左方向に50px以上スワイプしたら閉じるボタンをクリックする
         if (touchStartX - touchEndX > 50) {
-            const closeBtn = doc.querySelector('[data-testid="stSidebar"] button[kind="header"], [data-testid="stSidebarCollapseButton"] button');
-            if (closeBtn) {
-                closeBtn.click();
-            }
+            closeSidebar();
         }
     }, {passive: true});
+
+    // 「🚀 ランキングを作成する」ボタンが押されたら自動でメニューを閉じる
+    doc.addEventListener('click', function(e) {
+        const btn = e.target.closest('button');
+        if (btn && btn.innerText.includes('ランキングを作成する')) {
+            setTimeout(closeSidebar, 200);
+        }
+    }, true);
     </script>
 """, height=0)
 
