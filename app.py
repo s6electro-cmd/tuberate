@@ -8,27 +8,39 @@ from googleapiclient.errors import HttpError
 # ページ設定
 st.set_page_config(page_title="TubeRate - YouTube高評価率ランキング", layout="wide")
 # 上段のFork・GitHubボタンと、右下のStreamlitバッジを非表示にする（左上のサイドバー開閉ボタンは残す）
+# 左上の「＞」ボタンは残し、上段のFork/GitHubと右下のバッジだけをピンポイントで消す
 st.markdown("""
     <style>
-        /* 上段右側のツールバー（Fork, GitHubアイコン, メニュー）を隠す */
-        [data-testid="stToolbar"] {
-            visibility: hidden;
-            height: 0%;
-            position: fixed;
-        }
-        /* 右下の「Hosted with Streamlit」やプロフィールバッジを隠す */
-        .viewerBadge_container__r5tak,
-        .styles_viewerBadge__CvC9N,
-        [data-testid="manage-app-button"],
-        footer {
+        /* 上段右側のアクションボタン（Fork, GitHubアイコン, ⋮メニュー）だけを消す */
+        [data-testid="stToolbarActions"],
+        [data-testid="stMainMenu"],
+        .stAppDeployButton {
             display: none !important;
         }
-        /* 上部の余白を少し詰めてスッキリさせる */
+        /* ヘッダーの背景を透明にしつつ、左上の「＞」ボタン（stSidebarCollapsedControl）は必ず表示する */
+        header[data-testid="stHeader"] {
+            background: transparent !important;
+        }
+        [data-testid="stSidebarCollapsedControl"] {
+            visibility: visible !important;
+            display: flex !important;
+        }
+        /* 右下の「Hosted with Streamlit」「manage app」などのバッジをすべて消す */
+        footer,
+        [data-testid="stStatusWidget"],
+        [class^="viewerBadge_"],
+        [class*="viewerBadge"],
+        #MainMenu {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        /* 上部の余白をスッキリさせる */
         .block-container {
             padding-top: 2rem;
         }
     </style>
 """, unsafe_allow_html=True)
+
 
 st.title("📊 TubeRate 〜YouTube高評価率ランキング〜")
 st.markdown("再生回数だけでなく、視聴者の満足度（高評価率）が高い動画を期間指定で発掘できます。")
