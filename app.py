@@ -3,21 +3,50 @@ import datetime
 import re
 import pandas as pd
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
+# ページ設定
 st.set_page_config(page_title="TubeRate - YouTube高評価率ランキング", layout="wide")
 st.title("📊 TubeRate 〜YouTube高評価率ランキング〜")
 st.markdown("再生回数だけでなく、視聴者の満足度（高評価率）が高い動画を期間指定で発掘できます。")
 
-default_key = st.secrets.get("YOUTUBE_API_KEY", "") if "YOUTUBE_API_KEY" in st.secrets else ""
+# 裏側（Secrets）に保存された運営者のAPIキーを取得
+owner_api_key = st.secrets.get("YOUTUBE_API_KEY", "") if "YOUTUBE_API_KEY" in st.secrets else ""
 
+# セッション状態（無料枠が切れたかどうかの記憶）を初期化
+if "quota_exceeded" not in st.session_state:
+    st.session_state.quota_exceeded = False
+
+# サイドバー（検索条件の入力エリア）
 with st.sidebar:
     st.header("🔍 検索条件")
-    api_key = st.text_input(
-        "YouTube APIキー",
-        value=default_key,
-        type="password",
-        help="Google Cloud Consoleで取得した無料のYouTube Data API v3キーを入力してください"
-    )
+
+    # 運営者キーがない場合、または無料枠の上限に達した場合のみ入力欄を表示
+    user_api_key = ""
+    if not owner_api_key or st.session_state.quota_exceeded:
+        st.warning("⚠️ 本日の無料お試し枠が上限に達しました。続けて利用するにはご自身のYouTube APIキーを入力してください。")
+        user_api_key = st.text_input(
+            "ご自身のYouTube APIキー",
+            type="password",
+            placeholder="AIzaSy..."
+        )
+        with st.expander("📖 APIキーの無料取得方法（約3分）"):
+            st.markdown("""
+            1. [Google Cloud Console](https://google.com) にGoogleアカウントでログイン
+            2. 新しいプロジェクトを作成し、「ライブラリ」から **YouTube Data API v3** を有効化
+            3. 「認証情報」＞「＋認証情報を作成」＞「APIキー」で発行された文字列をコピーして上に貼り付け
+            ※完全無料・クレジットカード登録不要です。
+            """)
+    else:
+        st.caption("✅ 無料お試しモード稼働中（キー入力不要）")
+        # 自分のキーを使いたい人向けの折りたたみオプション
+        with st.expander("🔑 自分のAPIキーを使う（上級者向け）"):
+            user_api_key = st.text_input(
+                "YouTube APIキー（任意）",
+                type="password",
+                help="空欄のままでもそのまま検索できます"
+            )
+
     search_keyword = st.text_input("検索キーワード", value="キャンプ道具 -切り抜き")
 
     categories = {
@@ -62,13 +91,16 @@ def parse_duration(duration_str):
         return 0
     return int(match.group(1) or 0) * 3600 + int(match.group(2) or 0) * 60 + int(match.group(3) or 0)
 
+# 使用するAPIキーを決定（ユーザー入力があればそちらを優先、なければ運営者キーを使用）
+active_api_key = user_api_key if user_api_key else owner_api_key
+
 if search_button:
-    if not api_key:
-        st.error("⚠️ 左側のメニューに YouTube APIキー を入力してください。")
+    if not active_api_key:
+        st.error("⚠️ YouTube APIキーを入力してください。")
     else:
         with st.spinner("YouTubeからデータを取得・分析中..."):
             try:
-                youtube = build("youtube", "v3", developerKey=api_key)
+                youtube = build("youtube", "v3", developerKey=active_api_key)
                 now = datetime.datetime.now(datetime.timezone.utc)
                 published_after = (now - datetime.timedelta(hours=hours_start)).isoformat()
                 published_before = (now - datetime.timedelta(hours=hours_end)).isoformat()
@@ -157,5 +189,13 @@ if search_button:
                             file_name="youtube_likerate_ranking.csv",
                             mime="text/csv",
                         )
+
+            except HttpError as e:
+                # 1日の無料上限（quotaExceeded）に達した場合の自動切り替え処理
+                if e.resp.status == 403 and "quotaExceeded" in str(e):
+                    st.session_state.quota_exceeded = True
+                    st.rerun()
+                else:
+                    st.error(f"YouTube APIエラーが発生しました: {e}")
             except Exception as e:
                 st.error(f"エラーが発生しました: {e}")
