@@ -71,6 +71,27 @@ st.markdown("""
             padding-top: 3.5rem;
             padding-bottom: 5rem;
         }
+                /* ★ サイドバー（検索条件画面）の余白を詰めてスマホ1画面に収める */
+        section[data-testid="stSidebar"] > div {
+            padding-top: 1rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+        section[data-testid="stSidebar"] .block-container {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+        /* 各入力項目の縦の隙間をコンパクトにする */
+        section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+            gap: 0.45rem !important;
+        }
+        /* 見出し（🔍 検索条件）の上下の余白を小さくする */
+        section[data-testid="stSidebar"] h2 {
+            margin-top: 0 !important;
+            margin-bottom: 0.2rem !important;
+            padding-top: 0 !important;
+            font-size: 1.2rem !important;
+        }
+
     </style>
 """, unsafe_allow_html=True)
 
