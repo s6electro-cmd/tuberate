@@ -10,23 +10,15 @@ from googleapiclient.errors import HttpError
 st.set_page_config(page_title="TubeRate - YouTube高評価率ランキング", layout="wide")
 # 上段のFork・GitHubボタンと、右下のStreamlitバッジを非表示にする（左上のサイドバー開閉ボタンは残す）
 # 左上の「＞」ボタンは残し、上段のFork/GitHubと右下のバッジだけをピンポイントで消す
+# スマホ操作性アップ：検索ボタンを目立たせるCSS ＆ 左スワイプで閉じる機能
+import streamlit.components.v1 as components
+
 st.markdown("""
     <style>
-        /* 上段右側のアクションボタン（Fork, GitHubアイコン, ⋮メニュー）だけを消す */
+        /* 上段右側のツールバーと右下のバッジを非表示 */
         [data-testid="stToolbarActions"],
         [data-testid="stMainMenu"],
-        .stAppDeployButton {
-            display: none !important;
-        }
-        /* ヘッダーの背景を透明にしつつ、左上の「＞」ボタン（stSidebarCollapsedControl）は必ず表示する */
-        header[data-testid="stHeader"] {
-            background: transparent !important;
-        }
-        [data-testid="stSidebarCollapsedControl"] {
-            visibility: visible !important;
-            display: flex !important;
-        }
-        /* 右下の「Hosted with Streamlit」「manage app」などのバッジをすべて消す */
+        .stAppDeployButton,
         footer,
         [data-testid="stStatusWidget"],
         [class^="viewerBadge_"],
@@ -35,12 +27,61 @@ st.markdown("""
             display: none !important;
             visibility: hidden !important;
         }
-        /* 上部の余白をスッキリさせる */
+        header[data-testid="stHeader"] {
+            background: transparent !important;
+        }
+        /* ★ 1. 左上の「＞」ボタンを目立つ赤色の丸いボタンにして「検索条件」の文字を添える */
+        [data-testid="stSidebarCollapsedControl"] {
+            visibility: visible !important;
+            display: flex !important;
+            align-items: center !important;
+            background-color: #ff4b4b !important;
+            color: white !important;
+            border-radius: 20px !important;
+            padding: 4px 14px 4px 8px !important;
+            margin-top: 8px !important;
+            margin-left: 8px !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25) !important;
+        }
+        [data-testid="stSidebarCollapsedControl"] svg {
+            fill: white !important;
+            color: white !important;
+        }
+        [data-testid="stSidebarCollapsedControl"]::after {
+            content: "🔍 検索条件";
+            font-size: 13px;
+            font-weight: bold;
+            margin-left: 4px;
+            white-space: nowrap;
+        }
         .block-container {
-            padding-top: 2rem;
+            padding-top: 3rem;
+            padding-bottom: 5rem;
         }
     </style>
 """, unsafe_allow_html=True)
+
+# ★ 2. スマホで左にスワイプした時に検索メニュー（サイドバー）を自動で閉じる機能
+components.html("""
+    <script>
+    const doc = window.parent.document;
+    let touchStartX = 0;
+    doc.addEventListener('touchstart', function(e) {
+        touchStartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+    doc.addEventListener('touchend', function(e) {
+        const touchEndX = e.changedTouches[0].screenX;
+        // 左方向に50px以上スワイプしたら閉じるボタンをクリックする
+        if (touchStartX - touchEndX > 50) {
+            const closeBtn = doc.querySelector('[data-testid="stSidebar"] button[kind="header"], [data-testid="stSidebarCollapseButton"] button');
+            if (closeBtn) {
+                closeBtn.click();
+            }
+        }
+    }, {passive: true});
+    </script>
+""", height=0)
+
 
 
 st.title("📊 TubeRate 〜YouTube高評価率ランキング〜")
