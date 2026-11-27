@@ -21,7 +21,7 @@ st.markdown("""
             display: none !important;
             visibility: hidden !important;
         }
-        /* ヘッダー自体が下のリンクのクリックを邪魔しないようにする */
+        /* ヘッダーの透明部分が下のタップを邪魔しないようにする */
         header[data-testid="stHeader"] {
             background: transparent !important;
             pointer-events: none !important;
@@ -63,7 +63,7 @@ st.markdown("""
             white-space: nowrap !important;
         }
 
-        /* スマホ画面（768px以下）：ボタンを左端・縦の真ん中（50%）に配置 */
+        /* スマホ画面（768px以下）：ボタンを左端・縦の真ん中に配置 */
         @media (max-width: 768px) {
             [data-testid="stSidebarCollapsedControl"],
             [data-testid="stExpandSidebarButton"],
@@ -86,17 +86,18 @@ st.markdown("""
             }
         }
 
-        /* YouTube再生ボタン（確実に別タブ・アプリで開くリンク） */
+        /* YouTube遷移ボタン */
         .yt-open-btn {
             display: inline-block;
             background-color: #ff0000;
             color: #ffffff !important;
             font-weight: bold;
             text-decoration: none !important;
-            padding: 8px 18px;
+            padding: 8px 16px;
             border-radius: 8px;
-            margin-top: 6px;
             font-size: 14px;
+            margin-right: 8px;
+            margin-bottom: 6px;
         }
         .yt-open-btn:hover {
             background-color: #cc0000;
@@ -235,12 +236,10 @@ if "ranking_data" in st.session_state:
                 with col1:
                     if video["thumbnail"]:
                         st.markdown(
-                            f'<a href="{video["url"]}" target="_blank" rel="noopener noreferrer">'
+                            f'<a href="{video["url"]}" target="_top">'
                             f'<img src="{video["thumbnail"]}" style="width:100%; border-radius:8px;"></a>',
                             unsafe_allow_html=True,
                         )
                 with col2:
                     st.markdown(f"**:red[第 {idx} 位]**")
-                    st.markdown(f"### [{video['title']}]({video['url']})")
-                    st.caption(f"📺 {video['channel_title']} ｜ 📅 {video['published_date']}")
-                    m1, m2, m3, m4 = st.columns(4)
+                    st.markdown(f"### <a href='{video['url']}' target='_top' style='text-decoration:none; color:inherit;'>{video['title']}</a>", unsafe_allow_html=True)
