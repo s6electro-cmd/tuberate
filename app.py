@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import datetime
 import re
@@ -46,7 +47,12 @@ st.title("📊 TubeRate 〜YouTube高評価率ランキング〜")
 st.markdown("再生回数だけでなく、視聴者の満足度（高評価率）が高い動画を期間指定で発掘できます。")
 
 # 裏側（Secrets）に保存された運営者のAPIキーを取得
-owner_api_key = st.secrets.get("YOUTUBE_API_KEY", "") if "YOUTUBE_API_KEY" in st.secrets else ""
+owner_api_key = os.environ.get("YOUTUBE_API_KEY", "")
+if not owner_api_key:
+    try:
+        owner_api_key = st.secrets.get("YOUTUBE_API_KEY", "")
+    except Exception:
+        owner_api_key = ""
 
 # セッション状態（無料枠が切れたかどうかの記憶）を初期化
 if "quota_exceeded" not in st.session_state:
