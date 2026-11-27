@@ -6,7 +6,6 @@ import streamlit.components.v1 as components
 from googleapiclient.errors import HttpError
 from youtube_api import fetch_youtube_ranking
 
-# PCでは最初からサイドバーを開いておき、スマホでは自動で折りたたむ
 st.set_page_config(
     page_title="TubeRate - YouTube高評価率ランキング",
     layout="wide",
@@ -22,9 +21,16 @@ st.markdown("""
             display: none !important;
             visibility: hidden !important;
         }
-        header[data-testid="stHeader"] { background: transparent !important; }
+        /* ヘッダー自体が下のリンクのクリックを邪魔しないようにする */
+        header[data-testid="stHeader"] {
+            background: transparent !important;
+            pointer-events: none !important;
+        }
+        header[data-testid="stHeader"] button {
+            pointer-events: auto !important;
+        }
 
-        /* サイドバーを開くボタンの基本デザイン */
+        /* サイドバーを開くボタンのデザイン */
         [data-testid="stSidebarCollapsedControl"],
         [data-testid="stExpandSidebarButton"],
         header[data-testid="stHeader"] button {
@@ -39,7 +45,6 @@ st.markdown("""
             border: none !important;
             width: auto !important;
             height: auto !important;
-            z-index: 999999 !important;
         }
         [data-testid="stSidebarCollapsedControl"] svg,
         [data-testid="stExpandSidebarButton"] svg,
@@ -71,7 +76,7 @@ st.markdown("""
             }
         }
 
-        /* PC画面（769px以上）：最初から開いているため、閉じたときだけ左上に表示 */
+        /* PC画面（769px以上） */
         @media (min-width: 769px) {
             [data-testid="stSidebarCollapsedControl"],
             [data-testid="stExpandSidebarButton"],
@@ -79,6 +84,23 @@ st.markdown("""
                 margin-top: 8px !important;
                 margin-left: 8px !important;
             }
+        }
+
+        /* YouTube再生ボタン（確実に別タブ・アプリで開くリンク） */
+        .yt-open-btn {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff !important;
+            font-weight: bold;
+            text-decoration: none !important;
+            padding: 8px 18px;
+            border-radius: 8px;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+        .yt-open-btn:hover {
+            background-color: #cc0000;
+            color: #ffffff !important;
         }
 
         .block-container { padding-top: 2.5rem; padding-bottom: 5rem; }
@@ -92,7 +114,6 @@ components.html("""
         const closeBtn = doc.querySelector('[data-testid="stSidebarCollapseButton"] button, [data-testid="stSidebar"] button[kind="header"]');
         if (closeBtn) { closeBtn.click(); }
     }
-    // スマホ幅のときだけ左スワイプや実行ボタン押下でサイドバーを閉じる
     let touchStartX = 0;
     doc.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches.screenX; }, {passive: true});
     doc.addEventListener('touchend', function(e) {
@@ -213,14 +234,13 @@ if "ranking_data" in st.session_state:
                 col1, col2 = st.columns([1, 2.2])
                 with col1:
                     if video["thumbnail"]:
-                        st.image(video["thumbnail"], use_container_width=True)
+                        st.markdown(
+                            f'<a href="{video["url"]}" target="_blank" rel="noopener noreferrer">'
+                            f'<img src="{video["thumbnail"]}" style="width:100%; border-radius:8px;"></a>',
+                            unsafe_allow_html=True,
+                        )
                 with col2:
                     st.markdown(f"**:red[第 {idx} 位]**")
                     st.markdown(f"### [{video['title']}]({video['url']})")
                     st.caption(f"📺 {video['channel_title']} ｜ 📅 {video['published_date']}")
                     m1, m2, m3, m4 = st.columns(4)
-                    m1.metric("高評価率", f"{video['like_rate']:.2f}%")
-                    m2.metric("再生回数", f"{video['view_count']:,}")
-                    m3.metric("高評価数", f"{video['like_count']:,}")
-                    m4.metric("コメント数", f"{video['comment_count']:,}")
-                    st.link_button("▶️ YouTubeで再生する", video["url"])
