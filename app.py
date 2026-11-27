@@ -210,9 +210,6 @@ if search_button:
 
                         st.success(f"🎉 分析完了！全 {len(df)} 件のランキングを作成しました。")
 
-                                                st.success(f"🎉 分析完了！全 {len(df)} 件のランキングを作成しました。")
-
-                        # CSVダウンロードボタン（上部に配置してすぐ押せるようにする）
                         csv = df.to_csv(index=True).encode('utf-8-sig')
                         st.download_button(
                             label="📥 このランキングをCSVでダウンロード",
@@ -223,11 +220,9 @@ if search_button:
 
                         st.divider()
 
-                        # スマホでもPCでも1タップで確実に開けるカード型ランキング表示
                         for rank, row in df.iterrows():
                             col1, col2 = st.columns([1, 2.5])
                             with col1:
-                                # サムネイル画像とリンクボタン
                                 st.image(row["サムネイル"], use_container_width=True)
                                 st.link_button("▶ YouTubeで見る", row["動画リンク"], use_container_width=True)
                             with col2:
@@ -236,14 +231,6 @@ if search_button:
                                 st.markdown(f"🔥 **高評価率：{row['高評価率(%)']}%** （再生回数：{row['再生回数']:,}回 ／ 高評価数：{row['高評価数']:,}）")
                             st.divider()
 
-                            
-                            label="📥 このランキングをCSVでダウンロード",
-                            data=csv,
-                            file_name="youtube_likerate_ranking.csv",
-                            mime="text/csv",
-                        )
-
-            except HttpError as e:
                 # 1日の無料上限（quotaExceeded）に達した場合の自動切り替え処理
                 if e.resp.status == 403 and "quotaExceeded" in str(e):
                     st.session_state.quota_exceeded = True
