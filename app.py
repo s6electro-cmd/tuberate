@@ -1,30 +1,22 @@
 import os
-import re
 import datetime
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
-from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from youtube_api import fetch_youtube_ranking
 
 st.set_page_config(page_title="TubeRate - YouTube高評価率ランキング", layout="wide")
 
 st.markdown("""
     <style>
-        [data-testid="stToolbarActions"],
-        [data-testid="stMainMenu"],
-        .stAppDeployButton,
-        footer,
-        [data-testid="stStatusWidget"],
-        [class^="viewerBadge_"],
-        [class*="viewerBadge"],
-        #MainMenu {
+        [data-testid="stToolbarActions"], [data-testid="stMainMenu"],
+        .stAppDeployButton, footer, [data-testid="stStatusWidget"],
+        [class^="viewerBadge_"], [class*="viewerBadge"], #MainMenu {
             display: none !important;
             visibility: hidden !important;
         }
-        header[data-testid="stHeader"] {
-            background: transparent !important;
-        }
+        header[data-testid="stHeader"] { background: transparent !important; }
         [data-testid="stSidebarCollapsedControl"],
         [data-testid="stExpandSidebarButton"],
         header[data-testid="stHeader"] button {
@@ -58,27 +50,11 @@ st.markdown("""
             margin-left: 6px !important;
             white-space: nowrap !important;
         }
-        .block-container {
-            padding-top: 3.5rem;
-            padding-bottom: 5rem;
-        }
-        section[data-testid="stSidebar"] > div {
-            padding-top: 1rem !important;
-            padding-bottom: 0.5rem !important;
-        }
-        section[data-testid="stSidebar"] .block-container {
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.5rem !important;
-        }
-        section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-            gap: 0.45rem !important;
-        }
-        section[data-testid="stSidebar"] h2 {
-            margin-top: 0 !important;
-            margin-bottom: 0.2rem !important;
-            padding-top: 0 !important;
-            font-size: 1.2rem !important;
-        }
+        .block-container { padding-top: 3.5rem; padding-bottom: 5rem; }
+        section[data-testid="stSidebar"] > div { padding-top: 1rem !important; padding-bottom: 0.5rem !important; }
+        section[data-testid="stSidebar"] .block-container { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+        section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 0.45rem !important; }
+        section[data-testid="stSidebar"] h2 { margin-top: 0 !important; margin-bottom: 0.2rem !important; padding-top: 0 !important; font-size: 1.2rem !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -90,136 +66,16 @@ components.html("""
         if (closeBtn) { closeBtn.click(); }
     }
     let touchStartX = 0;
-    doc.addEventListener('touchstart', function(e) {
-        touchStartX = e.changedTouches.screenX;
-    }, {passive: true});
+    doc.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
     doc.addEventListener('touchend', function(e) {
-        const touchEndX = e.changedTouches.screenX;
-        if (touchStartX - touchEndX > 50) { closeSidebar(); }
+        if (touchStartX - e.changedTouches[0].screenX > 50) { closeSidebar(); }
     }, {passive: true});
     doc.addEventListener('click', function(e) {
         const btn = e.target.closest('button');
-        if (btn && btn.innerText.includes('ランキングを作成する')) {
-            setTimeout(closeSidebar, 200);
-        }
+        if (btn && btn.innerText.includes('ランキングを作成する')) { setTimeout(closeSidebar, 200); }
     }, true);
     </script>
 """, height=0)
-
-
-def parse_duration_seconds(duration_str: str) -> int:
-    match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration_str)
-    if not match:
-        return 0
-    hours = int(match.group(1) or 0)
-    minutes = int(match.group(2) or 0)
-    seconds = int(match.group(3) or 0)
-    return hours * 3600 + minutes * 60 + seconds
-
-
-@st.cache_data(ttl=3600, show_spinner=False)
-def fetch_youtube_ranking(
-    api_key: str,
-    keyword: str,
-    category_id: str,
-    hours_start: int,
-    hours_end: int,
-    min_views: int,
-    exclude_shorts: bool,
-    max_results: int,
-) -> list[dict]:
-    youtube = build("youtube", "v3", developerKey=api_key)
-    now = datetime.datetime.now(datetime.timezone.utc)
-    published_after = (now - datetime.timedelta(hours=hours_start)).isoformat()
-    published_before = (
-        (now - datetime.timedelta(hours=hours_end)).isoformat()
-        if hours_end > 0
-        else None
-    )
-
-    search_params = {
-        "part": "id",
-        "q": keyword,
-        "type": "video",
-        "order": "viewCount",
-        "maxResults": max_results,
-        "publishedAfter": published_after,
-        "regionCode": "JP",
-        "relevanceLanguage": "ja",
-    }
-    if published_before:
-        search_params["publishedBefore"] = published_before
-    if category_id != "0":
-        search_params["videoCategoryId"] = category_id
-
-    search_response = youtube.search().list(**search_params).execute()
-    video_ids = [
-        item["id"]["videoId"]
-        for item in search_response.get("items", [])
-        if "videoId" in item.get("id", {})
-    ]
-
-    if not video_ids:
-        return []
-
-    videos_response = youtube.videos().list(
-        part="snippet,statistics,contentDetails",
-        id=",".join(video_ids),
-    ).execute()
-
-    results = []
-    for item in videos_response.get("items", []):
-        snippet = item.get("snippet", {})
-        stats = item.get("statistics", {})
-        content = item.get("contentDetails", {})
-
-        title = snippet.get("title", "")
-        description = snippet.get("description", "")
-        duration_sec = parse_duration_seconds(content.get("duration", ""))
-
-        if exclude_shorts:
-            is_short_tag = "#shorts" in title.lower() or "#shorts" in description.lower()
-            if duration_sec < 180 or is_short_tag:
-                continue
-
-        view_count = int(stats.get("viewCount", 0))
-        if view_count < min_views:
-            continue
-
-        if "likeCount" not in stats:
-            continue
-
-        like_count = int(stats.get("likeCount", 0))
-        comment_count = int(stats.get("commentCount", 0))
-        like_rate = (like_count / view_count * 100) if view_count > 0 else 0.0
-
-        thumbnails = snippet.get("thumbnails", {})
-        thumb_url = (
-            thumbnails.get("high", {}).get("url")
-            or thumbnails.get("medium", {}).get("url")
-            or thumbnails.get("default", {}).get("url", "")
-        )
-
-        published_at_raw = snippet.get("publishedAt", "")
-        published_date = published_at_raw[:10] if published_at_raw else ""
-
-        results.append({
-            "video_id": item["id"],
-            "title": title,
-            "channel_title": snippet.get("channelTitle", ""),
-            "published_date": published_date,
-            "view_count": view_count,
-            "like_count": like_count,
-            "comment_count": comment_count,
-            "like_rate": round(like_rate, 2),
-            "duration_sec": duration_sec,
-            "thumbnail": thumb_url,
-            "url": f"https://youtube.com{item['id']}",
-        })
-
-    results.sort(key=lambda x: x["like_rate"], reverse=True)
-    return results
-
 
 st.title("📊 TubeRate 〜YouTube高評価率ランキング〜")
 st.markdown("再生回数だけでなく、視聴者の満足度（高評価率）が高い動画を期間指定で発掘できます。")
@@ -237,15 +93,10 @@ if "quota_exceeded" not in st.session_state:
 
 with st.sidebar:
     st.header("🔍 検索画面")
-
     user_api_key = ""
     if not owner_api_key or st.session_state.quota_exceeded:
         st.warning("⚠️ 本日の無料お試し枠が上限に達しました。続けて利用するにはご自身のYouTube APIキーを入力してください。")
-        user_api_key = st.text_input(
-            "ご自身のYouTube APIキー",
-            type="password",
-            placeholder="AIzaSy..."
-        )
+        user_api_key = st.text_input("ご自身のYouTube APIキー", type="password", placeholder="AIzaSy...")
         with st.expander("📖 APIキーの無料取得方法（約3分）"):
             st.markdown("""
             1. [Google Cloud Console](https://google.com) にGoogleアカウントでログイン
@@ -256,30 +107,15 @@ with st.sidebar:
     else:
         st.caption("✅ 無料お試しモード稼働中（キー入力不要）")
         with st.expander("🔑 自分のAPIキーを使う（上級者向け）"):
-            user_api_key = st.text_input(
-                "YouTube APIキー（任意）",
-                type="password",
-                help="空欄のままでもそのまま検索できます"
-            )
+            user_api_key = st.text_input("YouTube APIキー（任意）", type="password", help="空欄のままでもそのまま検索できます")
 
     search_keyword = st.text_input("検索キーワード", value="キャンプ道具 -切り抜き")
-
     categories = {
-        "すべて（全ジャンル）": "0",
-        "映画とアニメ": "1",
-        "自動車と乗り物": "2",
-        "音楽": "10",
-        "ペットと動物": "15",
-        "スポーツ": "17",
-        "旅行とイベント": "19",
-        "ゲーム": "20",
-        "ブログ（日常・Vlog）": "22",
-        "コメディ": "23",
-        "エンターテイメント": "24",
-        "ニュースと政治": "25",
-        "ハウツーとスタイル": "26",
-        "教育": "27",
-        "科学と技術": "28",
+        "すべて（全ジャンル）": "0", "映画とアニメ": "1", "自動車と乗り物": "2",
+        "音楽": "10", "ペットと動物": "15", "スポーツ": "17", "旅行とイベント": "19",
+        "ゲーム": "20", "ブログ（日常・Vlog）": "22", "コメディ": "23",
+        "エンターテイメント": "24", "ニュースと政治": "25", "ハウツーとスタイル": "26",
+        "教育": "27", "科学と技術": "28",
     }
     selected_cat_name = st.selectbox("ジャンル（カテゴリー）", list(categories.keys()))
     category_id = categories[selected_cat_name]
@@ -294,3 +130,63 @@ with st.sidebar:
     selected_period = st.selectbox("対象期間", list(period_options.keys()), index=2)
     hours_start, hours_end = period_options[selected_period]
 
+    min_views = st.number_input("最低再生回数（足切り）", min_value=0, value=3000, step=1000)
+    exclude_shorts = st.checkbox("ショート動画（3分未満）を除外する", value=True)
+    max_results = st.slider("取得する候補数（最大50件）", min_value=10, max_value=50, value=50)
+    search_button = st.button("🚀 ランキングを作成する", type="primary", use_container_width=True)
+
+if search_button:
+    active_api_key = user_api_key.strip() if user_api_key.strip() else owner_api_key
+    if not active_api_key:
+        st.error("❌ APIキーが設定されていません。サイドバーからご自身のYouTube APIキーを入力してください。")
+    else:
+        with st.spinner("YouTubeからデータを取得し、高評価率を計算中..."):
+            try:
+                ranking_data = fetch_youtube_ranking(
+                    api_key=active_api_key, keyword=search_keyword, category_id=category_id,
+                    hours_start=hours_start, hours_end=hours_end, min_views=min_views,
+                    exclude_shorts=exclude_shorts, max_results=max_results,
+                )
+                st.session_state["ranking_data"] = ranking_data
+            except HttpError as e:
+                if e.resp.status == 403 and "quotaExceeded" in str(e):
+                    if not user_api_key.strip():
+                        st.session_state.quota_exceeded = True
+                        st.rerun()
+                    else:
+                        st.error("❌ 入力されたAPIキーの1日の利用上限（Quota）を超過しています。")
+                else:
+                    st.error(f"❌ YouTube APIエラーが発生しました: {e}")
+            except Exception as e:
+                st.error(f"❌ 予期せぬエラーが発生しました: {e}")
+
+if "ranking_data" in st.session_state:
+    results = st.session_state["ranking_data"]
+    if not results:
+        st.warning("条件に一致する動画が見つかりませんでした。最低再生回数を下げるか、対象期間を広げてお試しください。")
+    else:
+        st.subheader(f"🏆 高評価率ランキング（該当 {len(results)} 件）")
+        df = pd.DataFrame(results)[["title", "channel_title", "published_date", "like_rate", "view_count", "like_count", "comment_count", "url"]]
+        df.columns = ["タイトル", "チャンネル名", "公開日", "高評価率(%)", "再生回数", "高評価数", "コメント数", "URL"]
+        st.download_button(
+            label="📥 ランキング結果をCSVでダウンロード",
+            data=df.to_csv(index=False).encode("utf-8-sig"),
+            file_name=f"tuberate_{datetime.date.today()}.csv",
+            mime="text/csv",
+        )
+        for idx, video in enumerate(results, start=1):
+            with st.container(border=True):
+                col1, col2 = st.columns([1, 2.2])
+                with col1:
+                    if video["thumbnail"]:
+                        st.image(video["thumbnail"], use_container_width=True)
+                with col2:
+                    st.markdown(f"**:red[第 {idx} 位]**")
+                    st.markdown(f"### [{video['title']}]({video['url']})")
+                    st.caption(f"📺 {video['channel_title']} ｜ 📅 {video['published_date']}")
+                    m1, m2, m3, m4 = st.columns(4)
+                    m1.metric("高評価率", f"{video['like_rate']:.2f}%")
+                    m2.metric("再生回数", f"{video['view_count']:,}")
+                    m3.metric("高評価数", f"{video['like_count']:,}")
+                    m4.metric("コメント数", f"{video['comment_count']:,}")
+                    st.link_button("▶️ YouTubeで再生する", video["url"])
