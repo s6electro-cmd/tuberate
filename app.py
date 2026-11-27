@@ -6,10 +6,16 @@ import streamlit.components.v1 as components
 from googleapiclient.errors import HttpError
 from youtube_api import fetch_youtube_ranking
 
-st.set_page_config(page_title="TubeRate - YouTube高評価率ランキング", layout="wide")
+# PCでは最初からサイドバーを開いておき、スマホでは自動で折りたたむ
+st.set_page_config(
+    page_title="TubeRate - YouTube高評価率ランキング",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 st.markdown("""
     <style>
+        /* 不要なツールバーとバッジを非表示 */
         [data-testid="stToolbarActions"], [data-testid="stMainMenu"],
         .stAppDeployButton, footer, [data-testid="stStatusWidget"],
         [class^="viewerBadge_"], [class*="viewerBadge"], #MainMenu {
@@ -17,6 +23,8 @@ st.markdown("""
             visibility: hidden !important;
         }
         header[data-testid="stHeader"] { background: transparent !important; }
+
+        /* サイドバーを開くボタンの基本デザイン */
         [data-testid="stSidebarCollapsedControl"],
         [data-testid="stExpandSidebarButton"],
         header[data-testid="stHeader"] button {
@@ -26,13 +34,12 @@ st.markdown("""
             background-color: #ff4b4b !important;
             color: white !important;
             border-radius: 24px !important;
-            padding: 6px 16px 6px 10px !important;
-            margin-top: 8px !important;
-            margin-left: 8px !important;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.25) !important;
+            padding: 8px 16px 8px 12px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
             border: none !important;
             width: auto !important;
             height: auto !important;
+            z-index: 999999 !important;
         }
         [data-testid="stSidebarCollapsedControl"] svg,
         [data-testid="stExpandSidebarButton"] svg,
@@ -43,14 +50,38 @@ st.markdown("""
         [data-testid="stSidebarCollapsedControl"]::after,
         [data-testid="stExpandSidebarButton"]::after,
         header[data-testid="stHeader"] button::after {
-            content: "🔍 検索画面";
+            content: "🔍 検索画面を開く";
             font-size: 14px !important;
             font-weight: bold !important;
             color: white !important;
             margin-left: 6px !important;
             white-space: nowrap !important;
         }
-        .block-container { padding-top: 3.5rem; padding-bottom: 5rem; }
+
+        /* スマホ画面（768px以下）：ボタンを左端・縦の真ん中（50%）に配置 */
+        @media (max-width: 768px) {
+            [data-testid="stSidebarCollapsedControl"],
+            [data-testid="stExpandSidebarButton"],
+            header[data-testid="stHeader"] button {
+                position: fixed !important;
+                top: 50% !important;
+                left: 8px !important;
+                transform: translateY(-50%) !important;
+                margin: 0 !important;
+            }
+        }
+
+        /* PC画面（769px以上）：最初から開いているため、閉じたときだけ左上に表示 */
+        @media (min-width: 769px) {
+            [data-testid="stSidebarCollapsedControl"],
+            [data-testid="stExpandSidebarButton"],
+            header[data-testid="stHeader"] button {
+                margin-top: 8px !important;
+                margin-left: 8px !important;
+            }
+        }
+
+        .block-container { padding-top: 2.5rem; padding-bottom: 5rem; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -61,21 +92,26 @@ components.html("""
         const closeBtn = doc.querySelector('[data-testid="stSidebarCollapseButton"] button, [data-testid="stSidebar"] button[kind="header"]');
         if (closeBtn) { closeBtn.click(); }
     }
+    // スマホ幅のときだけ左スワイプや実行ボタン押下でサイドバーを閉じる
     let touchStartX = 0;
     doc.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches.screenX; }, {passive: true});
     doc.addEventListener('touchend', function(e) {
-        if (touchStartX - e.changedTouches.screenX > 50) { closeSidebar(); }
+        if (window.parent.innerWidth <= 768 && (touchStartX - e.changedTouches.screenX > 50)) {
+            closeSidebar();
+        }
     }, {passive: true});
     doc.addEventListener('click', function(e) {
         const btn = e.target.closest('button');
-        if (btn && btn.innerText.includes('ランキングを作成する')) { setTimeout(closeSidebar, 200); }
+        if (window.parent.innerWidth <= 768 && btn && btn.innerText.includes('ランキングを作成する')) {
+            setTimeout(closeSidebar, 200);
+        }
     }, true);
     </script>
 """, height=0)
 
 st.title("📊 TubeRate 〜YouTube高評価率ランキング〜")
 st.markdown("再生回数だけでなく、視聴者の満足度（高評価率）が高い動画を期間指定で発掘できます。")
-st.info("💡 左上の「🔍 検索画面」から、あなたの好きなYouTubeのジャンルやお気に入りのチャンネル名を入れて試してみてください！")
+st.info("💡 左側の「検索画面」（スマホは左中央の赤いボタン）から条件を選んでランキングを作成できます！")
 
 owner_api_key = os.environ.get("YOUTUBE_API_KEY", "")
 if not owner_api_key:
