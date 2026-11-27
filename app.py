@@ -197,8 +197,9 @@ if search_button:
                             "再生回数": view_count,
                             "高評価数": like_count,
                             "動画時間(分)": round(duration_sec / 60, 1),
-                            "公開日": snippet["publishedAt"][:10],
-                            "動画リンク": f"https://youtube.com{item['id']}"
+                            "公開日": snippet["publishedAt"][:10], 
+                            "動画リンク": f"https://www.youtube.com/watch?v={item['id']}"
+
 
                         })
 
