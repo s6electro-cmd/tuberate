@@ -322,13 +322,7 @@ if search_button:
                                 st.markdown(f"🔥 **高評価率：{row['高評価率(%)']}%** （再生回数：{row['再生回数']:,}回 ／ 高評価数：{row['高評価数']:,}）")
                             st.divider()
 
-                # 1日の無料上限（quotaExceeded）に達した場合の自動切り替え処理
-                if e.resp.status == 403 and "quotaExceeded" in str(e):
-                    st.session_state.quota_exceeded = True
-                    st.rerun()
-                else:
-                    st.error(f"YouTube APIエラーが発生しました: {e}")
-                        except HttpError as e:
+                                    except HttpError as e:
                 if e.resp.status == 403 and "quotaExceeded" in str(e):
                     st.session_state.quota_exceeded = True
                     st.rerun()
@@ -336,3 +330,4 @@ if search_button:
                     st.error(f"YouTube APIエラーが発生しました: {e}")
             except Exception as e:
                 st.error(f"エラーが発生しました: {e}")
+
