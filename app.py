@@ -210,21 +210,33 @@ if search_button:
 
                         st.success(f"🎉 分析完了！全 {len(df)} 件のランキングを作成しました。")
 
-                        st.dataframe(
-                            df,
-                            column_config={
-                                "サムネイル": st.column_config.ImageColumn("サムネ", width="small"),
-                                "動画リンク": st.column_config.LinkColumn("YouTubeで見る", display_text="▶ 再生"),
-                                "高評価率(%)": st.column_config.NumberColumn("高評価率", format="%.2f %%"),
-                                "再生回数": st.column_config.NumberColumn("再生回数", format="%d 回"),
-                                "高評価数": st.column_config.NumberColumn("高評価数", format="%d"),
-                            },
-                            use_container_width=True,
-                            height=600
-                        )
+                                                st.success(f"🎉 分析完了！全 {len(df)} 件のランキングを作成しました。")
 
+                        # CSVダウンロードボタン（上部に配置してすぐ押せるようにする）
                         csv = df.to_csv(index=True).encode('utf-8-sig')
                         st.download_button(
+                            label="📥 このランキングをCSVでダウンロード",
+                            data=csv,
+                            file_name="youtube_likerate_ranking.csv",
+                            mime="text/csv",
+                        )
+
+                        st.divider()
+
+                        # スマホでもPCでも1タップで確実に開けるカード型ランキング表示
+                        for rank, row in df.iterrows():
+                            col1, col2 = st.columns([1, 2.5])
+                            with col1:
+                                # サムネイル画像とリンクボタン
+                                st.image(row["サムネイル"], use_container_width=True)
+                                st.link_button("▶ YouTubeで見る", row["動画リンク"], use_container_width=True)
+                            with col2:
+                                st.markdown(f"### {rank}位：[{row['タイトル']}]({row['動画リンク']})")
+                                st.markdown(f"**📺 {row['チャンネル名']}** ｜ 公開日: {row['公開日']} ｜ 動画時間: {row['動画時間(分)']}分")
+                                st.markdown(f"🔥 **高評価率：{row['高評価率(%)']}%** （再生回数：{row['再生回数']:,}回 ／ 高評価数：{row['高評価数']:,}）")
+                            st.divider()
+
+                            
                             label="📥 このランキングをCSVでダウンロード",
                             data=csv,
                             file_name="youtube_likerate_ranking.csv",
