@@ -51,10 +51,6 @@ st.markdown("""
             white-space: nowrap !important;
         }
         .block-container { padding-top: 3.5rem; padding-bottom: 5rem; }
-        section[data-testid="stSidebar"] > div { padding-top: 1rem !important; padding-bottom: 0.5rem !important; }
-        section[data-testid="stSidebar"] .block-container { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
-        section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 0.45rem !important; }
-        section[data-testid="stSidebar"] h2 { margin-top: 0 !important; margin-bottom: 0.2rem !important; padding-top: 0 !important; font-size: 1.2rem !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -66,9 +62,9 @@ components.html("""
         if (closeBtn) { closeBtn.click(); }
     }
     let touchStartX = 0;
-    doc.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+    doc.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches.screenX; }, {passive: true});
     doc.addEventListener('touchend', function(e) {
-        if (touchStartX - e.changedTouches[0].screenX > 50) { closeSidebar(); }
+        if (touchStartX - e.changedTouches.screenX > 50) { closeSidebar(); }
     }, {passive: true});
     doc.addEventListener('click', function(e) {
         const btn = e.target.closest('button');
@@ -93,21 +89,6 @@ if "quota_exceeded" not in st.session_state:
 
 with st.sidebar:
     st.header("🔍 検索画面")
-    user_api_key = ""
-    if not owner_api_key or st.session_state.quota_exceeded:
-        st.warning("⚠️ 本日の無料お試し枠が上限に達しました。続けて利用するにはご自身のYouTube APIキーを入力してください。")
-        user_api_key = st.text_input("ご自身のYouTube APIキー", type="password", placeholder="AIzaSy...")
-        with st.expander("📖 APIキーの無料取得方法（約3分）"):
-            st.markdown("""
-            1. [Google Cloud Console](https://google.com) にGoogleアカウントでログイン
-            2. 新しいプロジェクトを作成し、「ライブラリ」から **YouTube Data API v3** を有効化
-            3. 「認証情報」＞「＋認証情報を作成」＞「APIキー」で発行された文字列をコピーして上に貼り付け
-            ※完全無料・クレジットカード登録不要です。
-            """)
-    else:
-        st.caption("✅ 無料お試しモード稼働中（キー入力不要）")
-        with st.expander("🔑 自分のAPIキーを使う（上級者向け）"):
-            user_api_key = st.text_input("YouTube APIキー（任意）", type="password", help="空欄のままでもそのまま検索できます")
 
     search_keyword = st.text_input("検索キーワード", value="キャンプ道具 -切り抜き")
     categories = {
@@ -130,10 +111,27 @@ with st.sidebar:
     selected_period = st.selectbox("対象期間", list(period_options.keys()), index=2)
     hours_start, hours_end = period_options[selected_period]
 
-    min_views = st.number_input("最低再生回数（足切り）", min_value=0, value=3000, step=1000)
-    exclude_shorts = st.checkbox("ショート動画（3分未満）を除外する", value=True)
-    max_results = st.slider("取得する候補数（最大50件）", min_value=10, max_value=50, value=50)
     search_button = st.button("🚀 ランキングを作成する", type="primary", use_container_width=True)
+
+    with st.expander("⚙️ 詳細フィルター（再生数・ショート除外）", expanded=False):
+        min_views = st.number_input("最低再生回数（足切り）", min_value=0, value=3000, step=1000)
+        exclude_shorts = st.checkbox("ショート動画（3分未満）を除外する", value=True)
+        max_results = st.slider("取得する候補数（最大50件）", min_value=10, max_value=50, value=50)
+
+    user_api_key = ""
+    if not owner_api_key or st.session_state.quota_exceeded:
+        st.warning("⚠️ 本日の無料お試し枠が上限に達しました。ご自身のYouTube APIキーを入力してください。")
+        user_api_key = st.text_input("ご自身のYouTube APIキー", type="password", placeholder="AIzaSy...")
+        with st.expander("📖 APIキーの無料取得方法（約3分）"):
+            st.markdown("""
+            1. [Google Cloud Console](https://google.com) にログイン
+            2. 新しいプロジェクトを作成し **YouTube Data API v3** を有効化
+            3. 「認証情報」＞「＋認証情報を作成」＞「APIキー」で発行された文字列を貼り付け
+            """)
+    else:
+        st.caption("✅ 無料お試しモード稼働中（キー入力不要）")
+        with st.expander("🔑 自分のAPIキーを使う（任意）", expanded=False):
+            user_api_key = st.text_input("YouTube APIキー", type="password", help="空欄のままで検索できます")
 
 if search_button:
     active_api_key = user_api_key.strip() if user_api_key.strip() else owner_api_key
