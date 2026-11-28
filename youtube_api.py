@@ -66,7 +66,7 @@ def fetch_youtube_ranking(
     ).execute()
 
     slash = chr(47)
-    base_url = "https:" + slash + slash + "://youtube.com" + slash + "watch?v="
+    base_url = f"https:{chr(47)*2}www.youtube.com{chr(47)}watch?v="
 
     results = []
     for item in videos_response.get("items", []):
