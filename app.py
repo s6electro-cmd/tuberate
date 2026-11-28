@@ -193,7 +193,7 @@ if "ranking_data" in st.session_state:
     if not results:
         st.warning("条件に一致する動画が見つかりませんでした。最低再生回数を下げるか、対象期間を広げてお試しください。")
     else:
-        st.subheader(f"🏆 高評価率ランキング（該当 {len(results)} 件）")
+st.subheader(f"🏆 高評価率ランキング（該当 {len(results)} 件）")
         df = pd.DataFrame(results)[["title", "channel_title", "published_date", "like_rate", "view_count", "like_count", "comment_count", "url"]]
         df.columns = ["タイトル", "チャンネル名", "公開日", "高評価率(%)", "再生回数", "高評価数", "コメント数", "URL"]
         st.download_button(
@@ -209,19 +209,17 @@ if "ranking_data" in st.session_state:
                     if video["thumbnail"]:
                         st.image(video["thumbnail"], use_container_width=True)
                 with col2:
-                                   yt_url = "https:" + chr(47) + chr(47) + "://youtube.com" + chr(47) + "watch?v=" + video["video_id"]
-                    st.markdown(f"**:red[第 {idx} 位]**")
-                    st.markdown(f"### [{video['title']}]({yt_url})")
-                    st.caption(f"📺 {video['channel_title']} ｜ 📅 {video['published_date']}")
-                    m1, m2, m3, m4 = st.columns(4)
-                    m1.metric("高評価率", f"{video['like_rate']:.2f}%")
-                    m2.metric("再生回数", f"{video['view_count']:,}")
-                    m3.metric("高評価数", f"{video['like_count']:,}")
-                    m4.metric("コメント数", f"{video['comment_count']:,}")
+        yt_url = "https:" + chr(47) + chr(47) + "://youtube.com" + chr(47) + "watch?v=" + video["video_id"]
+        st.markdown(f"**:red[第 {idx} 位]**")
+        st.markdown(f"### [{video['title']}]({yt_url})")
+        st.caption(f"📺 {video['channel_title']} ｜ 📅 {video['published_date']}")
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("高評価率", f"{video['like_rate']:.2f}%")
+        m2.metric("再生回数", f"{video['view_count']:,}")
+        m3.metric("高評価数", f"{video['like_count']:,}")
+        m4.metric("コメント数", f"{video['comment_count']:,}")
 
-                    st.link_button("▶️ YouTubeで開く", yt_url, type="primary")
-                    with st.expander("🎬 この画面のまま動画を再生する"):
-                        st.video(yt_url)
-
-                        st.video(video["url"])
+        st.link_button("▶️ YouTubeで開く", yt_url, type="primary")
+        with st.expander("🎬 この画面のまま動画を再生する"):
+            st.video(yt_url
 
