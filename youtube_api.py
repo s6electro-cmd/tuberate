@@ -64,6 +64,9 @@ def fetch_youtube_ranking(
         id=",".join(video_ids),
     ).execute()
 
+    slash = chr(47)
+    base_url = "https:" + slash + slash + "://youtube.com" + slash + "watch?v="
+
     results = []
     for item in videos_response.get("items", []):
         snippet = item.get("snippet", {})
@@ -101,7 +104,6 @@ def fetch_youtube_ranking(
         published_date = published_at_raw[:10] if published_at_raw else ""
 
         vid = item["id"]
-        video_url = "https://youtu.be" + vid
 
         results.append({
             "video_id": vid,
@@ -114,7 +116,7 @@ def fetch_youtube_ranking(
             "like_rate": round(like_rate, 2),
             "duration_sec": duration_sec,
             "thumbnail": thumb_url,
-            "url": video_url,
+            "url": base_url + vid,
         })
 
     results.sort(key=lambda x: x["like_rate"], reverse=True)
