@@ -209,17 +209,17 @@ st.subheader(f"🏆 高評価率ランキング（該当 {len(results)} 件）")
                     if video["thumbnail"]:
                         st.image(video["thumbnail"], use_container_width=True)
                 with col2:
-        yt_url = "https:" + chr(47) + chr(47) + "://youtube.com" + chr(47) + "watch?v=" + video["video_id"]
-        st.markdown(f"**:red[第 {idx} 位]**")
-        st.markdown(f"### [{video['title']}]({yt_url})")
-        st.caption(f"📺 {video['channel_title']} ｜ 📅 {video['published_date']}")
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("高評価率", f"{video['like_rate']:.2f}%")
-        m2.metric("再生回数", f"{video['view_count']:,}")
-        m3.metric("高評価数", f"{video['like_count']:,}")
-        m4.metric("コメント数", f"{video['comment_count']:,}")
+                    yt_url = "https:" + chr(47) + chr(47) + "://youtube.com" + chr(47) + "watch?v=" + video["video_id"]
+                    st.markdown(f"**:red[第 {idx} 位]**")
+                    st.markdown(f"### [{video['title']}]({yt_url})")
+                    st.caption(f"📺 {video['channel_title']} ｜ 📅 {video['published_date']}")
+                    m1, m2, m3, m4 = st.columns(4)
+                    m1.metric("高評価率", f"{video['like_rate']:.2f}%")
+                    m2.metric("再生回数", f"{video['view_count']:,}")
+                    m3.metric("高評価数", f"{video['like_count']:,}")
+                    m4.metric("コメント数", f"{video['comment_count']:,}")
 
-        st.link_button("▶️ YouTubeで開く", yt_url, type="primary")
-        with st.expander("🎬 この画面のまま動画を再生する"):
-            st.video(yt_url
+                    st.link_button("▶️ YouTubeで開く", yt_url, type="primary")
+                    with st.expander("🎬 この画面のまま動画を再生する"):
+                        st.video(yt_url
 
