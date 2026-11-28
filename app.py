@@ -164,9 +164,10 @@ with st.sidebar:
 3. 「認証情報」＞「＋認証情報を作成」＞「APIキー」で発行された文字列を貼り付け
         """)
 if search_button:
-    active_api_key = user_api_key.strip()
+    active_api_key = user_api_key.strip() if user_api_key.strip() else owner_api_key
     if not active_api_key:
-        st.error("❌ ご利用にはAPIのキーの入力が必要です")
+        st.error("❌ APIキーが設定されていません。")
+        
     else:
         with st.spinner("YouTubeからデータを取得し、高評価率を計算中..."):
             try:
