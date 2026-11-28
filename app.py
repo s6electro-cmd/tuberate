@@ -148,25 +148,18 @@ with st.sidebar:
         exclude_shorts = st.checkbox("ショート動画（3分未満）を除外する", value=True)
         max_results = st.slider("取得する候補数（最大50件）", min_value=10, max_value=50, value=50)
 
-    user_api_key = ""
-    if not owner_api_key or st.session_state.quota_exceeded:
-        st.warning("⚠️ 本日の無料お試し枠が上限に達しました。ご自身のYouTube APIキーを入力してください。")
-        user_api_key = st.text_input("ご自身のYouTube APIキー", type="password", placeholder="AIzaSy...")
-        with st.expander("📖 APIキーの無料取得方法（約3分）"):
-            st.markdown("""
-            1. [Google Cloud Console](https://google.com) にログイン
-            2. 新しいプロジェクトを作成し **YouTube Data API v3** を有効化
-            3. 「認証情報」＞「＋認証情報を作成」＞「APIキー」で発行された文字列を貼り付け
-            """)
-    else:
-        st.caption("✅ 無料お試しモード稼働中（キー入力不要）")
-        with st.expander("🔑 自分のAPIキーを使う（任意）", expanded=False):
-            user_api_key = st.text_input("YouTube APIキー", type="password", help="空欄のままで検索できます")
-
+    st.info("ご利用にはAPIのキーの入力が必要です")
+    user_api_key = st.text_input("YouTube APIキー", type="password", placeholder="AIzaSy...")
+    with st.expander("📖 APIキーの無料取得方法（約3分）"):
+        st.markdown("""
+1. [Google Cloud Console](https://google.com) にログイン
+2. 新しいプロジェクトを作成し **YouTube Data API v3** を有効化
+3. 「認証情報」＞「＋認証情報を作成」＞「APIキー」で発行された文字列を貼り付け
+        """)
 if search_button:
-    active_api_key = user_api_key.strip() if user_api_key.strip() else owner_api_key
+    active_api_key = user_api_key.strip()
     if not active_api_key:
-        st.error("❌ APIキーが設定されていません。サイドバーからご自身のYouTube APIキーを入力してください。")
+        st.error("❌ ご利用にはAPIのキーの入力が必要です")
     else:
         with st.spinner("YouTubeからデータを取得し、高評価率を計算中..."):
             try:
