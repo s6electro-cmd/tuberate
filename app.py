@@ -222,12 +222,14 @@ if "ranking_data" in st.session_state:
                         st.session_state[player_key] = False
 
                     st.link_button("▶️ YouTubeで開く", yt_url, type="primary")
-                    with st.expander("🎬 この画面のまま動画を再生する", expanded=st.session_state[player_key]):
-                        st.video(yt_url)
-                        if st.button("❌ 閉じる", key=f"close_{video['video_id']}"):
-                            st.session_state[player_key] = False
-                            st.rerun()
-                    
+  　　　　　　　　 　  if st.session_state[player_key]:
+ 　　　　　　　　　     　      st.session_state[player_key] = False
+     　　　　　　　　 　       st.rerun()
+    　　　　　　　 　　    st.video(yt_url)
+ 　　　　　　　　 　   else:
+ 　　　　　　　　        if st.button("🎬 この画面のまま動画を再生する", key=f"open_{video['video_id']}"):
+ 　　　　　　　　　            st.session_state[player_key] = True
+   　　　　　　　　　          st.rerun()
                     
               
 
