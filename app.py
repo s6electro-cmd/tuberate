@@ -153,16 +153,11 @@ with st.sidebar:
         st.info("ご利用にはAPIのキーの入力が必要です")
         user_api_key = st.text_input("YouTube APIキー", type="password", placeholder="AIzaSy...")
         with st.expander("📖 APIキーの無料取得方法（約3分）"):
-            st.markdown("""
-1. [Google Cloud Console](https://google.com) にログイン
-2. 新しいプロジェクトを作成し **YouTube Data API v3** を有効化
-3. 「認証情報」＞「＋認証情報を作成」＞「APIキー」で発行された文字列を貼り付け
-            """)
-            
-1. [Google Cloud Console](https://google.com) にログイン
-2. 新しいプロジェクトを作成し **YouTube Data API v3** を有効化
-3. 「認証情報」＞「＋認証情報を作成」＞「APIキー」で発行された文字列を貼り付け
-""")
+            st.caption("1. Google Cloud Console にログイン")
+            st.caption("2. 新しいプロジェクトを作成し YouTube Data API v3 を有効化")
+            st.caption("3. 「認証情報」＞「＋認証情報を作成」＞「APIキー」で発行された文字列を貼り付け")
+
+
 if search_button:
     active_api_key = user_api_key.strip() if user_api_key.strip() else owner_api_key
     if not active_api_key:
