@@ -120,5 +120,8 @@ def fetch_youtube_ranking(
             "url": base_url + vid,
         })
 
+    st.caption(
+        f"取得内訳: 検索ID={len(video_ids)}件 / 詳細={len(videos_response.get('items', []))}件 / 絞り込み後={len(results)}件"
+    )
     results.sort(key=lambda x: x["like_rate"], reverse=True)
     return results
