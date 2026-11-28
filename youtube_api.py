@@ -200,6 +200,10 @@ def fetch_youtube_ranking(
     ch_base_url = f"https:{chr(47)*2}www.youtube.com{chr(47)}channel{chr(47)}"
 
     results = []
+    st.caption(
+        f"検証: 検索ID={len(video_ids)}件 / 詳細={len(videos_response.get('items', []))}件 / "
+        f"動画フィルタ通過={len(raw_candidates)}件 / チャンネル情報={len(channel_info_map)}件"
+    )
     for cand in raw_candidates:
         ch_info = channel_info_map.get(cand["channel_id"], {})
         sub_count = ch_info.get("subscriber_count", -1)
