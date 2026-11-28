@@ -193,7 +193,9 @@ if "ranking_data" in st.session_state:
     if not results:
         st.warning("条件に一致する動画が見つかりませんでした。最低再生回数を下げるか、対象期間を広げてお試しください。")
     else:
-st.subheader(f"🏆 高評価率ランキング（該当 {len(results)} 件）")
+        st.subheader(f"🏆 高評価率ランキング（該当 {len(results)} 件）")
+    
+   
         df = pd.DataFrame(results)[["title", "channel_title", "published_date", "like_rate", "view_count", "like_count", "comment_count", "url"]]
         df.columns = ["タイトル", "チャンネル名", "公開日", "高評価率(%)", "再生回数", "高評価数", "コメント数", "URL"]
         st.download_button(
