@@ -232,5 +232,4 @@ if "ranking_data" in st.session_state:
                     m3.metric("高評価数", f"{video['like_count']:,}")
                     m4.metric("コメント数", f"{video['comment_count']:,}")
                     st.link_button("▶️ YouTubeで開く", yt_url, type="primary")
- 　　　　　　　　 　  
-
+                    
