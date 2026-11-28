@@ -220,6 +220,8 @@ if "ranking_data" in st.session_state:
                         if st.button("🎬 ここで再生", key=f"open_{video['video_id']}", use_container_width=True):
                             st.session_state[player_key] = True
                             st.rerun()
+                            
+                        
                 with col2:
                     st.markdown(f"**:red[第 {idx} 位]**")
                     st.markdown(f"### [{video['title']}]({yt_url})")
