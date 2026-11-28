@@ -21,13 +21,8 @@ st.markdown("""
             display: none !important;
             visibility: hidden !important;
         }
-        /* ヘッダーの透明部分が下のタップを邪魔しないようにする */
         header[data-testid="stHeader"] {
             background: transparent !important;
-            pointer-events: none !important;
-        }
-        header[data-testid="stHeader"] button {
-            pointer-events: auto !important;
         }
 
         /* サイドバーを開くボタンのデザイン */
@@ -86,28 +81,11 @@ st.markdown("""
             }
         }
 
-        /* YouTube遷移ボタン */
-        .yt-open-btn {
-            display: inline-block;
-            background-color: #ff0000;
-            color: #ffffff !important;
-            font-weight: bold;
-            text-decoration: none !important;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-right: 8px;
-            margin-bottom: 6px;
-        }
-        .yt-open-btn:hover {
-            background-color: #cc0000;
-            color: #ffffff !important;
-        }
-
         .block-container { padding-top: 2.5rem; padding-bottom: 5rem; }
     </style>
 """, unsafe_allow_html=True)
 
+# 左スワイプでのみサイドバーを閉じる（クリック横取りは廃止してリンク遷移を保護）
 components.html("""
     <script>
     const doc = window.parent.document;
@@ -122,12 +100,6 @@ components.html("""
             closeSidebar();
         }
     }, {passive: true});
-    doc.addEventListener('click', function(e) {
-        const btn = e.target.closest('button');
-        if (window.parent.innerWidth <= 768 && btn && btn.innerText.includes('ランキングを作成する')) {
-            setTimeout(closeSidebar, 200);
-        }
-    }, true);
     </script>
 """, height=0)
 
@@ -235,11 +207,18 @@ if "ranking_data" in st.session_state:
                 col1, col2 = st.columns([1, 2.2])
                 with col1:
                     if video["thumbnail"]:
-                        st.markdown(
-                            f'<a href="{video["url"]}" target="_top">'
-                            f'<img src="{video["thumbnail"]}" style="width:100%; border-radius:8px;"></a>',
-                            unsafe_allow_html=True,
-                        )
+                        st.image(video["thumbnail"], use_container_width=True)
                 with col2:
                     st.markdown(f"**:red[第 {idx} 位]**")
-                    st.markdown(f"### <a href='{video['url']}' target='_top' style='text-decoration:none; color:inherit;'>{video['title']}</a>", unsafe_allow_html=True)
+                    st.markdown(f"### [{video['title']}]({video['url']})")
+                    st.caption(f"📺 {video['channel_title']} ｜ 📅 {video['published_date']}")
+                    m1, m2, m3, m4 = st.columns(4)
+                    m1.metric("高評価率", f"{video['like_rate']:.2f}%")
+                    m2.metric("再生回数", f"{video['view_count']:,}")
+                    m3.metric("高評価数", f"{video['like_count']:,}")
+                    m4.metric("コメント数", f"{video['comment_count']:,}")
+
+                    st.link_button("▶️ YouTubeで開く", video["url"], type="primary")
+                    with st.expander("🎬 この画面のまま動画を再生する"):
+                        st.video(video["url"])
+
