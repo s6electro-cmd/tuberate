@@ -217,10 +217,16 @@ if "ranking_data" in st.session_state:
                     m3.metric("高評価数", f"{video['like_count']:,}")
                     m4.metric("コメント数", f"{video['comment_count']:,}")
 
+                    player_key = f"player_open_{video['video_id']}"
+                    if player_key not in st.session_state:
+                        st.session_state[player_key] = False
+
                     st.link_button("▶️ YouTubeで開く", yt_url, type="primary")
-                    with st.expander("🎬 この画面のまま動画を再生する"):
+                    with st.expander("🎬 この画面のまま動画を再生する", expanded=st.session_state[player_key]):
                         st.video(yt_url)
-                    
+                        if st.button("❌ 閉じる", key=f"close_{video['video_id']}"):
+                            st.session_state[player_key] = False
+                            st.rerun()
                     
                     
               
