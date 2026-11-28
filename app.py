@@ -202,12 +202,25 @@ if "ranking_data" in st.session_state:
         )
         for idx, video in enumerate(results, start=1):
             with st.container(border=True):
-                col1, col2 = st.columns([1, 2.2])
+                player_key = f"player_open_{video['video_id']}"
+                if player_key not in st.session_state:
+                    st.session_state[player_key] = False
+                yt_url = "https:" + chr(47) + chr(47) + "www.youtube.com" + chr(47) + "watch?v=" + video["video_id"]
+
+                col1, col2 = st.columns([1, 2.4])
                 with col1:
-                    if video["thumbnail"]:
-                        st.image(video["thumbnail"], use_container_width=True)
+                    if st.session_state[player_key]:
+                        st.video(yt_url)
+                        if st.button("❌ サムネに戻す", key=f"close_{video['video_id']}", use_container_width=True):
+                            st.session_state[player_key] = False
+                            st.rerun()
+                    else:
+                        if video["thumbnail"]:
+                            st.image(video["thumbnail"], use_container_width=True)
+                        if st.button("🎬 ここで再生", key=f"open_{video['video_id']}", use_container_width=True):
+                            st.session_state[player_key] = True
+                            st.rerun()
                 with col2:
-                    yt_url = "https:" + chr(47) + chr(47) + "youtube.com" + chr(47) + "watch?v=" + video["video_id"]
                     st.markdown(f"**:red[第 {idx} 位]**")
                     st.markdown(f"### [{video['title']}]({yt_url})")
                     st.caption(f"📺 {video['channel_title']} ｜ 📅 {video['published_date']}")
@@ -216,20 +229,6 @@ if "ranking_data" in st.session_state:
                     m2.metric("再生回数", f"{video['view_count']:,}")
                     m3.metric("高評価数", f"{video['like_count']:,}")
                     m4.metric("コメント数", f"{video['comment_count']:,}")
-
-                    player_key = f"player_open_{video['video_id']}"
-                    if player_key not in st.session_state:
-                        st.session_state[player_key] = False
-
                     st.link_button("▶️ YouTubeで開く", yt_url, type="primary")
-  　　　　　　　　 　  if st.session_state[player_key]:
- 　　　　　　　　　     　      st.session_state[player_key] = False
-     　　　　　　　　 　       st.rerun()
-    　　　　　　　 　　    st.video(yt_url)
- 　　　　　　　　 　   else:
- 　　　　　　　　        if st.button("🎬 この画面のまま動画を再生する", key=f"open_{video['video_id']}"):
- 　　　　　　　　　            st.session_state[player_key] = True
-   　　　　　　　　　          st.rerun()
-                    
-              
+ 　　　　　　　　 　  
 
