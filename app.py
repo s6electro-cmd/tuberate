@@ -148,10 +148,17 @@ with st.sidebar:
         exclude_shorts = st.checkbox("ショート動画（3分未満）を除外する", value=True)
         max_results = st.slider("取得する候補数（最大50件）", min_value=10, max_value=50, value=50)
 
-    st.info("ご利用にはAPIのキーの入力が必要です")
-    user_api_key = st.text_input("YouTube APIキー", type="password", placeholder="AIzaSy...")
-    with st.expander("📖 APIキーの無料取得方法（約3分）"):
-        st.markdown("""
+    user_api_key = ""
+    if st.session_state.quota_exceeded:
+        st.info("ご利用にはAPIのキーの入力が必要です")
+        user_api_key = st.text_input("YouTube APIキー", type="password", placeholder="AIzaSy...")
+        with st.expander("📖 APIキーの無料取得方法（約3分）"):
+            st.markdown("""
+1. [Google Cloud Console](https://google.com) にログイン
+2. 新しいプロジェクトを作成し **YouTube Data API v3** を有効化
+3. 「認証情報」＞「＋認証情報を作成」＞「APIキー」で発行された文字列を貼り付け
+            """)
+            
 1. [Google Cloud Console](https://google.com) にログイン
 2. 新しいプロジェクトを作成し **YouTube Data API v3** を有効化
 3. 「認証情報」＞「＋認証情報を作成」＞「APIキー」で発行された文字列を貼り付け
