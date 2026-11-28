@@ -223,5 +223,9 @@ if "ranking_data" in st.session_state:
 
                     st.link_button("▶️ YouTubeで開く", yt_url, type="primary")
                     with st.expander("🎬 この画面のまま動画を再生する"):
-                        st.video(yt_url
+                        st.video(yt_url)
+                    
+                    
+                    
+              
 
