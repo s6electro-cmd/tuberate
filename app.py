@@ -202,26 +202,52 @@ if "ranking_data" in st.session_state:
         )
         for idx, video in enumerate(results, start=1):
             with st.container(border=True):
-                player_key = f"player_open_{video['video_id']}"
-                if player_key not in st.session_state:
-                    st.session_state[player_key] = False
-                yt_url = "https:" + chr(47) + chr(47) + "www.youtube.com" + chr(47) + "watch?v=" + video["video_id"]
+                vid = video["video_id"]
+                yt_url = "https:" + chr(47) + chr(47) + "www.youtube.com" + chr(47) + "watch?v=" + vid
+                embed_url = "https:" + chr(47) + chr(47) + "www.youtube.com" + chr(47) + "embed/" + vid
+                thumb_url = video["thumbnail"] or ""
 
                 col1, col2 = st.columns([1, 2.4])
                 with col1:
-                    if st.session_state[player_key]:
-                        st.video(yt_url)
-                        if st.button("❌ サムネに戻す", key=f"close_{video['video_id']}", use_container_width=True):
-                            st.session_state[player_key] = False
-                            st.rerun()
-                    else:
-                        if video["thumbnail"]:
-                            st.image(video["thumbnail"], use_container_width=True)
-                        if st.button("🎬 ここで再生", key=f"open_{video['video_id']}", use_container_width=True):
-                            st.session_state[player_key] = True
-                            st.rerun()
-                            
-                   
+                    components.html(
+                        f"""
+                        <style>
+                          .hover-box-{vid} {{
+                            position: relative;
+                            width: 100%;
+                            aspect-ratio: 16 / 9;
+                            overflow: hidden;
+                            border-radius: 8px;
+                            background: #000;
+                          }}
+                          .hover-box-{vid} img,
+                          .hover-box-{vid} iframe {{
+                            position: absolute;
+                            inset: 0;
+                            width: 100%;
+                            height: 100%;
+                            border: 0;
+                          }}
+                          .hover-box-{vid} img {{
+                            object-fit: cover;
+                            z-index: 2;
+                            transition: opacity 0.15s ease;
+                          }}
+                          .hover-box-{vid} iframe {{
+                            z-index: 1;
+                          }}
+                          .hover-box-{vid}:hover img {{
+                            opacity: 0;
+                            pointer-events: none;
+                          }}
+                        </style>
+                        <div class="hover-box-{vid}">
+                          <img src="{thumb_url}" alt="thumbnail">
+                          <iframe src="{embed_url}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        """,
+                        height=190,
+                    )
                 with col2:
                     st.markdown(f"**:red[第 {idx} 位]**")
                     st.markdown(f"### [{video['title']}]({yt_url})")
@@ -231,5 +257,4 @@ if "ranking_data" in st.session_state:
                     m2.metric("再生回数", f"{video['view_count']:,}")
                     m3.metric("高評価数", f"{video['like_count']:,}")
                     m4.metric("コメント数", f"{video['comment_count']:,}")
-                    st.link_button("▶️ YouTubeで開く", yt_url, type="primary")
                     
