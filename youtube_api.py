@@ -24,6 +24,7 @@ def fetch_youtube_ranking(
     min_views: int,
     exclude_shorts: bool,
     max_results: int,
+    cache_version: str = "v2",
 ) -> list[dict]:
     youtube = build("youtube", "v3", developerKey=api_key)
     now = datetime.datetime.now(datetime.timezone.utc)
