@@ -68,6 +68,10 @@ def fetch_youtube_ranking(
     slash = chr(47)
     base_url = f"https:{chr(47)*2}www.youtube.com{chr(47)}watch?v="
 
+    skipped_shorts = 0
+    skipped_min_views = 0
+    skipped_no_likes = 0
+
     results = []
     for item in videos_response.get("items", []):
         snippet = item.get("snippet", {})
@@ -81,13 +85,16 @@ def fetch_youtube_ranking(
         if exclude_shorts:
             is_short_tag = "#shorts" in title.lower() or "#shorts" in description.lower()
             if duration_sec < 180 or is_short_tag:
+                skipped_shorts += 1
                 continue
 
         view_count = int(stats.get("viewCount", 0))
         if view_count < min_views:
+            skipped_min_views += 1
             continue
 
         if "likeCount" not in stats:
+            skipped_no_likes += 1
             continue
 
         like_count = int(stats.get("likeCount", 0))
@@ -121,7 +128,8 @@ def fetch_youtube_ranking(
         })
 
     st.caption(
-        f"取得内訳: 検索ID={len(video_ids)}件 / 詳細={len(videos_response.get('items', []))}件 / 絞り込み後={len(results)}件"
+        f"取得内訳: 検索ID={len(video_ids)}件 / 詳細={len(videos_response.get('items', []))}件 / "
+        f"絞り込み後={len(results)}件（除外: ショート={skipped_shorts}件, 最小再生数={skipped_min_views}件, 高評価非公開={skipped_no_likes}件）"
     )
     results.sort(key=lambda x: x["like_rate"], reverse=True)
     return results
